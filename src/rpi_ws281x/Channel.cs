@@ -10,9 +10,9 @@ namespace rpi_ws281x
 	{
 		public Channel() : this(0, 0) { }
 		
-		public Channel(int ledCount, int gpioPin) : this(ledCount, gpioPin, 255, false)	{ }
+		public Channel(int ledCount, int gpioPin) : this(ledCount, gpioPin, 255, false, rpi_ws281x.StripType.Unknown)	{ }
 
-		public Channel(int ledCount, int gpioPin, byte  brightness, bool invert)
+		public Channel(int ledCount, int gpioPin, byte  brightness, bool invert, StripType stripType)
 		{
 			GPIOPin = gpioPin;
 			Invert = invert;
@@ -45,9 +45,17 @@ namespace rpi_ws281x
 		public byte Brightness { get; set; }
 
 		/// <summary>
+		/// Returns the type of the channel.
+		/// The type defines the ordering of the colors.
+		/// </summary>
+		public StripType StripType { get; private set; }
+
+		/// <summary>
 		/// Returns all LEDs on this channel
 		/// </summary>
 		public ReadOnlyCollection<LED> LEDs { get; private set; }
+
+		public int LEDCount { get => LEDs.Count; }
 		
 	}
 }

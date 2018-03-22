@@ -101,7 +101,13 @@ namespace rpi_ws281x
 			_ws2811.channel[channelIndex].gpionum		= channelSettings.GPIOPin;
 			_ws2811.channel[channelIndex].brightness	= channelSettings.Brightness;
 			_ws2811.channel[channelIndex].invert		= Convert.ToInt32(channelSettings.Invert);
-			_ws2811.channel[channelIndex].strip_type	= 0x00081000; //Set Strip_Type explicitly that the LED object could use Color.ToArgb() to calculate the rgb value.
+
+			if(channelSettings.StripType != StripType.Unknown)
+			{
+				//Strip type is set by the native assembly if not explicitly set.
+				//This type defines the ordering of the colors e. g. RGB or GRB, ...
+				_ws2811.channel[channelIndex].strip_type = (int)channelSettings.StripType;
+			}
 		}
 
 		/// <summary>
