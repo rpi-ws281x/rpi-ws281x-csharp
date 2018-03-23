@@ -6,78 +6,55 @@ using System.Drawing;
 namespace TestApp
 {
 	class Program
-    {
+    {		
+
         static void Main(string[] args)
         {
-			var exitApplication = false;
+			var abort = new AbortRequest();
+
 			Console.CancelKeyPress += (s, e) =>
 			{
 				e.Cancel = true;
-				exitApplication = true;
+				abort.IsAbortRequested = true;
 			};
-			
-			//The default settings uses a frequency of 800000 Hz and the DMA channel 5.
-			var settings = Settings.CreateDefaultSettings();
-
-			//Use 16 LEDs and GPIO Pin 18.
-			//Set brightness to maximum (255)
-			//Use Unknown as strip type. Then the type will be set in the native assembly.
-			settings.Channels[0] = new Channel(16, 18, 255, false, StripType.WS2812_STRIP);
-			
-			using (var rpi = new WS281x(settings))
+		
+			var input = 0;
+			do
 			{
-				while (!exitApplication)
+				Console.Clear();
+				Console.WriteLine("What do you want to test:");
+				Console.WriteLine("Presse CTRL + C to abort to current test.");
+				Console.WriteLine("0 - Exit");
+				Console.WriteLine("1 - Color wipe animation");
+				Console.WriteLine("2 - Rainbow color animation");
+
+				Console.Write("What is your choice: ");
+				input = Int32.Parse(Console.ReadLine());
+
+				var animation = GetAnimation(input);
+				if(animation != null)
 				{
-					//DoColorWipe(rpi);
-					DoAnimation(rpi);
+					abort.IsAbortRequested = false;
+					animation.Execute(abort);
 				}
-			}
+				
+			} while (input != 0);
 		}
 
-		private static void DoColorWipe(WS281x rpi)
+		private static IAnimation GetAnimation(int code)
 		{
-			ColorWipe(Color.Red, rpi);
-			ColorWipe(Color.Green, rpi);
-			ColorWipe(Color.Blue, rpi);
-		}
+			IAnimation result = null;
 
-		private static void ColorWipe(Color color, WS281x rpi)
-		{
-			for(int i=0; i<= rpi.Settings.Channels[0].LEDs.Count -1; i++)
+			switch(code)
 			{
-				rpi.SetLEDColor(0, i, color);
-				rpi.Render();
-				System.Threading.Thread.Sleep(1000 / 15);
+				case 1:
+					result = new ColorWipe();
+					break;
+
+				case 2:
+					result = new RainbowColorAnimation();
+					break;
 			}
-		}
-
-		private static int colorOffset = 0;
-		private static void DoAnimation(WS281x rpi)
-		{
-			var colors = GetAnimationColors();
-			
-			for(int i=0; i<= rpi.Settings.Channels[0].LEDCount -1; i++)
-			{
-				var colorIndex = (i + colorOffset) % colors.Count;
-				rpi.SetLEDColor(0, i, colors[colorIndex]);
-			}
-
-			rpi.Render();
-			colorOffset++;
-			System.Threading.Thread.Sleep(50);
-		}
-
-		private static List<Color> GetAnimationColors()
-		{
-			var result = new List<Color>();
-
-			result.Add(Color.FromArgb(0x201000));
-			result.Add(Color.FromArgb(0x202000));
-			result.Add(Color.FromArgb(0x002000));
-			result.Add(Color.FromArgb(0x002020));
-			result.Add(Color.FromArgb(0x000020));
-			result.Add(Color.FromArgb(0x100010));
-			result.Add(Color.FromArgb(0x200010));
 
 			return result;
 		}

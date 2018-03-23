@@ -43,8 +43,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AbortRequest.cs" />
+    <Compile Include="ColorWipe.cs" />
+    <Compile Include="IAnimation.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RainbowColorAnimation.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
