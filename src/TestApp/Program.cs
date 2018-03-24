@@ -23,7 +23,7 @@ namespace TestApp
 			{
 				Console.Clear();
 				Console.WriteLine("What do you want to test:");
-				Console.WriteLine("Presse CTRL + C to abort to current test.");
+				Console.WriteLine("Press CTRL + C to abort to current test.");
 				Console.WriteLine("0 - Exit");
 				Console.WriteLine("1 - Color wipe animation");
 				Console.WriteLine("2 - Rainbow color animation");
