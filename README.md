@@ -7,7 +7,7 @@ It is very easy to use the wrapper in your own C# / .NET project.
 Just see the example below:
 
 ```csharp
-//The default settings uses a frequency of 800000 Hz and the DMA channel 5.
+//The default settings uses a frequency of 800000 Hz and the DMA channel 10.
 var settings = Settings.CreateDefaultSettings();
 
 //Use 16 LEDs and GPIO Pin 18.
@@ -39,3 +39,12 @@ gcc -shared -o ws2811.so *.o
 
 The P/Invoke functinality has a [special search pattern](http://www.mono-project.com/docs/advanced/pinvoke/#library-handling) to find the required assembly.
 For my tests I copied the ws2811.so assembly to /usr/lib (as mentioned in the link above).
+
+## Test status
+The wrapper was tested with following setup:
+
+|Raspberry model | Controller | GPIO Pin | DMA channel | Result |
+|----------------|------------|----------|-------------|--------|
+|Model B Rev 2   | WS2812B    | 18       | 5, 10       | Success|
+
+Please feel free to add some more test cases.
