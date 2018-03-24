@@ -17,6 +17,7 @@ namespace rpi_ws281x
 			GPIOPin = gpioPin;
 			Invert = invert;
 			Brightness = brightness;
+			StripType = stripType;
 
 			var ledList = new List<LED>();
 			for(int i= 0; i<= ledCount-1; i++)
