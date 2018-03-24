@@ -17,7 +17,7 @@ namespace TestApp
 
 			var ledCount = Int32.Parse(Console.ReadLine());
 
-			//The default settings uses a frequency of 800000 Hz and the DMA channel 5.
+			//The default settings uses a frequency of 800000 Hz and the DMA channel 10.
 			var settings = Settings.CreateDefaultSettings();
 
 			//Set brightness to maximum (255)

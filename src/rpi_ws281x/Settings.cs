@@ -24,12 +24,12 @@ namespace rpi_ws281x
 
 		/// <summary>
 		/// Returns default settings.
-		/// Use a frequency of 800000 Hz and DMA channel 5
+		/// Use a frequency of 800000 Hz and DMA channel 10
 		/// </summary>
 		/// <returns></returns>
 		public static Settings CreateDefaultSettings()
 		{
-			return new Settings(800000, 5);
+			return new Settings(800000, 10);
 		}
 
 		/// <summary>
