@@ -28,7 +28,9 @@ namespace rpi_ws281x
 
 			_ws2811.dmanum	= settings.DMAChannel;
 			_ws2811.freq	= settings.Frequency;
-			_ws2811.channel = new ws2811_channel_t[PInvoke.RPI_PWM_CHANNELS];
+			//_ws2811.channel = new ws2811_channel_t[PInvoke.RPI_PWM_CHANNELS];
+			_ws2811.channel_1 = default;
+			InitChannel(ref _ws2811.channel_1, settings.Channel);
 
 			for(int i=0; i<= _ws2811.channel.Length -1; i++)
 			{
@@ -40,7 +42,7 @@ namespace rpi_ws281x
 
 			Settings = settings;
 
-			var initResult = PInvoke.ws2811_init(ref _ws2811);
+			var initResult = PInvoke.ws2811_init(_ws2811Handle.AddrOfPinnedObject());
 			if (initResult != ws2811_return_t.WS2811_SUCCESS)
 			{
 				var returnMessage = GetMessageForStatusCode(initResult);
@@ -62,11 +64,11 @@ namespace rpi_ws281x
 				if (Settings.Channels[i] != null)
 				{
 					var ledColor = Settings.Channels[i].LEDs.Select(x => x.RGBValue).ToArray();
-					Marshal.Copy(ledColor, 0, _ws2811.channel[i].leds, ledColor.Count());
+					Marshal.Copy(ledColor, 0, _ws2811.channel_1.leds, ledColor.Count());
 				}
 			}
 			
-			var result = PInvoke.ws2811_render(ref _ws2811);
+			var result = PInvoke.ws2811_render(_ws2811Handle.AddrOfPinnedObject());
 			if (result != ws2811_return_t.WS2811_SUCCESS)
 			{
 				var returnMessage = GetMessageForStatusCode(result);
@@ -93,20 +95,20 @@ namespace rpi_ws281x
 		/// <summary>
 		/// Initialize the channel propierties
 		/// </summary>
-		/// <param name="channelIndex">Index of the channel tu initialize</param>
+		/// <param name="channel">Channel to initialize</param>
 		/// <param name="channelSettings">Settings for the channel</param>
-		private void InitChannel(int channelIndex, Channel channelSettings)
+		private void InitChannel(ref ws2811_channel_t channel, Channel channelSettings)
 		{
-			_ws2811.channel[channelIndex].count			= channelSettings.LEDs.Count;
-			_ws2811.channel[channelIndex].gpionum		= channelSettings.GPIOPin;
-			_ws2811.channel[channelIndex].brightness	= channelSettings.Brightness;
-			_ws2811.channel[channelIndex].invert		= Convert.ToInt32(channelSettings.Invert);
+			channel.count		= channelSettings.LEDs.Count;
+			channel.gpionum		= channelSettings.GPIOPin;
+			channel.brightness	= channelSettings.Brightness;
+			channel.invert		= Convert.ToInt32(channelSettings.Invert);
 
 			if(channelSettings.StripType != StripType.Unknown)
 			{
 				//Strip type is set by the native assembly if not explicitly set.
 				//This type defines the ordering of the colors e. g. RGB or GRB, ...
-				_ws2811.channel[channelIndex].strip_type = (int)channelSettings.StripType;
+				channel.strip_type = (int)channelSettings.StripType;
 			}
 		}
 
@@ -138,9 +140,10 @@ namespace rpi_ws281x
 
 				if(_isDisposingAllowed)
 				{
-					PInvoke.ws2811_fini(ref _ws2811);
-					_ws2811Handle.Free();
-										
+					PInvoke.ws2811_fini(_ws2811Handle.AddrOfPinnedObject());
+					if (_ws2811Handle.IsAllocated) {
+						_ws2811Handle.Free();
+					}				
 					_isDisposingAllowed = false;
 				}
 				
@@ -160,8 +163,7 @@ namespace rpi_ws281x
 		{
 			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 			Dispose(true);
-			// TODO: uncomment the following line if the finalizer is overridden above.
-			// GC.SuppressFinalize(this);
+			GC.SuppressFinalize(this);
 		}
 	#endregion
 	}
