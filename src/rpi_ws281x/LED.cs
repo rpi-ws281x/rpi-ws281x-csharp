@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace rpi_ws281x
+namespace WS281x
 {
 	/// <summary>
 	/// Represents a LED which can be controlled by the WS281x controller

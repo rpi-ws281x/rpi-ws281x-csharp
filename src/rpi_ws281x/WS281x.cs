@@ -1,10 +1,10 @@
-﻿using Native;
-using System;
+﻿using System;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
+using WS281x.Native;
 
-namespace rpi_ws281x
+namespace WS281x
 {
 	/// <summary>
 	/// Wrapper class to controll WS281x LEDs
@@ -22,23 +22,12 @@ namespace rpi_ws281x
 		public WS281x(Settings settings)
 		{
 			_ws2811 = new ws2811_t();
-			//Pin the object in memory. Otherwies GC will probably move the object to another memory location.
-			//This would cause errors because the native library has a pointer on the memory location of the object.
 			_ws2811Handle = GCHandle.Alloc(_ws2811, GCHandleType.Pinned);
 
 			_ws2811.dmanum	= settings.DMAChannel;
 			_ws2811.freq	= settings.Frequency;
-			//_ws2811.channel = new ws2811_channel_t[PInvoke.RPI_PWM_CHANNELS];
-			_ws2811.channel_1 = default;
+			_ws2811.channel_1 = default(ws2811_channel_t);
 			InitChannel(ref _ws2811.channel_1, settings.Channel);
-
-			for(int i=0; i<= _ws2811.channel.Length -1; i++)
-			{
-				if(settings.Channels[i] != null)
-				{
-					InitChannel(i, settings.Channels[i]);
-				}
-			}
 
 			Settings = settings;
 
@@ -46,11 +35,11 @@ namespace rpi_ws281x
 			if (initResult != ws2811_return_t.WS2811_SUCCESS)
 			{
 				var returnMessage = GetMessageForStatusCode(initResult);
-				throw new Exception(String.Format("Error while initializing.{0}Error code: {1}{0}Message: {2}", Environment.NewLine, initResult.ToString(), returnMessage));
-			}	
+				throw new Exception($"Error while initializing.{Environment.NewLine}Error code: {initResult.ToString()}{Environment.NewLine}Message: {returnMessage}");
+			}
 
 			//Disposing is only allowed if the init was successfull.
-			//Otherwise the native cleanup function throws an error.
+			//Otherwise the native cleanUp function throws an error.
 			_isDisposingAllowed = true;
 		}
 
@@ -59,20 +48,14 @@ namespace rpi_ws281x
 		/// </summary>
 		public void Render()
 		{
-			for(int i=0; i<= Settings.Channels.Length -1; i++)
-			{
-				if (Settings.Channels[i] != null)
-				{
-					var ledColor = Settings.Channels[i].LEDs.Select(x => x.RGBValue).ToArray();
-					Marshal.Copy(ledColor, 0, _ws2811.channel_1.leds, ledColor.Count());
-				}
-			}
-			
+			var ledColor = Settings.Channel.Leds.Select(x => x.RGBValue).ToArray();
+			Marshal.Copy(ledColor, 0, _ws2811.channel_1.leds, ledColor.Count());
+
 			var result = PInvoke.ws2811_render(_ws2811Handle.AddrOfPinnedObject());
 			if (result != ws2811_return_t.WS2811_SUCCESS)
 			{
 				var returnMessage = GetMessageForStatusCode(result);
-				throw new Exception(String.Format("Error while rendering.{0}Error code: {1}{0}Message: {2}", Environment.NewLine, result.ToString(), returnMessage));
+				throw new Exception($"Error while rendering.{Environment.NewLine}Error code: {result.ToString()}{Environment.NewLine}Message: {returnMessage}");
 			}
 		}
 
@@ -82,9 +65,17 @@ namespace rpi_ws281x
 		/// <param name="channelIndex">Channel which controls the LED</param>
 		/// <param name="ledID">ID/Index of the LED</param>
 		/// <param name="color">New color</param>
-		public void SetLEDColor(int channelIndex, int ledID, Color color)
+		public void SetLEDColor(int ledID, Color color)
 		{
-			Settings.Channels[channelIndex].LEDs[ledID].Color = color;
+			Settings.Channel.Leds[ledID].Color = color;
+		}
+
+		public void SetColorOnAllLEDs(Color color)
+		{
+			for(int i = 0 ; i < Settings.Channel.Leds.Count ; ++i)
+			{
+				Settings.Channel.Leds[i].Color = color;
+			}
 		}
 
 		/// <summary>
@@ -93,21 +84,19 @@ namespace rpi_ws281x
 		public Settings Settings { get; private set; }
 
 		/// <summary>
-		/// Initialize the channel propierties
+		/// Initialize the channel properties.
 		/// </summary>
-		/// <param name="channel">Channel to initialize</param>
-		/// <param name="channelSettings">Settings for the channel</param>
+		/// <param name="channel">Channel to initialize.</param>
+		/// <param name="channelSettings">Settings for the channel.</param>
 		private void InitChannel(ref ws2811_channel_t channel, Channel channelSettings)
 		{
-			channel.count		= channelSettings.LEDs.Count;
-			channel.gpionum		= channelSettings.GPIOPin;
-			channel.brightness	= channelSettings.Brightness;
-			channel.invert		= Convert.ToInt32(channelSettings.Invert);
+			channel.count = channelSettings.LEDCount;
+			channel.gpionum = channelSettings.GPIOPin;
+			channel.brightness = channelSettings.Brightness;
+			channel.invert = Convert.ToInt32(channelSettings.Invert);
 
-			if(channelSettings.StripType != StripType.Unknown)
+			if (channelSettings.StripType != StripType.Unknown)
 			{
-				//Strip type is set by the native assembly if not explicitly set.
-				//This type defines the ordering of the colors e. g. RGB or GRB, ...
 				channel.strip_type = (int)channelSettings.StripType;
 			}
 		}
@@ -123,7 +112,6 @@ namespace rpi_ws281x
 			return Marshal.PtrToStringAuto(strPointer);
 		}
 
-	#region IDisposable Support
 		private bool disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
@@ -141,30 +129,28 @@ namespace rpi_ws281x
 				if(_isDisposingAllowed)
 				{
 					PInvoke.ws2811_fini(_ws2811Handle.AddrOfPinnedObject());
-					if (_ws2811Handle.IsAllocated) {
+					if(_ws2811Handle.IsAllocated)
+					{
 						_ws2811Handle.Free();
-					}				
+					}
+
 					_isDisposingAllowed = false;
 				}
-				
+
 				disposedValue = true;
 			}
 		}
 
-		// TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
 		~WS281x()
 		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+		// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 			Dispose(false);
 		}
 
-		// This code added to correctly implement the disposable pattern.
 		public void Dispose()
 		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 			Dispose(true);
 			GC.SuppressFinalize(this);
 		}
-	#endregion
 	}
 }
