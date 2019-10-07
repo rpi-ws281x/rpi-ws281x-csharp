@@ -22,7 +22,7 @@ namespace TestApp
 
 			//Set brightness to maximum (255)
 			//Use Unknown as strip type. Then the type will be set in the native assembly.
-			settings.Channels[0] = new Channel(ledCount, 18, 255, false, StripType.WS2812_STRIP);
+			settings.Channel_1 = new Channel(ledCount, 18, 255, false, StripType.WS2812_STRIP);
 
 			using (var controller = new WS281x(settings))
 			{
@@ -37,7 +37,7 @@ namespace TestApp
 
 		private static void Wipe(WS281x controller, Color color)
 		{
-			for (int i = 0; i <= controller.Settings.Channels[0].LEDs.Count - 1; i++)
+			for (int i = 0; i <= controller.Settings.Channel_1.LEDs.Count - 1; i++)
 			{
 				controller.SetLEDColor(0, i, color);
 				controller.Render();

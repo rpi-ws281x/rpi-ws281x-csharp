@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Native
+namespace rpi_ws281x.Native
 {
 	[StructLayout(LayoutKind.Sequential)]
+	[SuppressMessage("IDE1006", "IDE1006", Justification = "Native methods have different naming conventions.")]
 	internal struct ws2811_channel_t
 	{
 		public int gpionum;

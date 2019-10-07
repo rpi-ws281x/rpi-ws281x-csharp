@@ -8,30 +8,30 @@ namespace rpi_ws281x
 	/// </summary>
 	public class Channel
 	{
-		public Channel() : this(0, 0) { }
-		
-		public Channel(int ledCount, int gpioPin) : this(ledCount, gpioPin, 255, false, rpi_ws281x.StripType.Unknown)	{ }
+        public Channel() : this(0, 0) { }
 
-		public Channel(int ledCount, int gpioPin, byte  brightness, bool invert, StripType stripType)
-		{
-			GPIOPin = gpioPin;
-			Invert = invert;
-			Brightness = brightness;
-			StripType = stripType;
+        public Channel(int ledCount, int gpioPin) : this(ledCount, gpioPin, 255, false, StripType.Unknown) { }
 
-			var ledList = new List<LED>();
-			for(int i= 0; i<= ledCount-1; i++)
-			{
-				ledList.Add(new LED(i));
-			}
+        public Channel(int ledCount, int gpioPin, byte brightness, bool invert, StripType stripType)
+        {
+            GPIOPin = gpioPin;
+            Invert = invert;
+            Brightness = brightness;
+            StripType = stripType;
 
-			LEDs = new ReadOnlyCollection<LED>(ledList);
-		}
-		
-		/// <summary>
-		/// Returns the GPIO pin which is connected to the LED strip
-		/// </summary>
-		public int GPIOPin { get; private set; }
+            var ledList = new List<LED>();
+            for (int i = 0; i <= ledCount - 1; i++)
+            {
+                ledList.Add(new LED(i));
+            }
+
+            LEDs = new ReadOnlyCollection<LED>(ledList);
+        }
+
+        /// <summary>
+        /// Returns the GPIO pin which is connected to the LED strip
+        /// </summary>
+        public int GPIOPin { get; private set; }
 
 		/// <summary>
 		/// Returns a value which indicates if the signal needs to be inverted.
@@ -41,7 +41,7 @@ namespace rpi_ws281x
 
 		/// <summary>
 		/// Gets or sets the brightness of the LEDs
-		/// 0 = darkes, 255 = brightest
+		/// 0 = darkest, 255 = brightest
 		/// </summary>
 		public byte Brightness { get; set; }
 
@@ -51,12 +51,11 @@ namespace rpi_ws281x
 		/// </summary>
 		public StripType StripType { get; private set; }
 
-		/// <summary>
-		/// Returns all LEDs on this channel
-		/// </summary>
-		public ReadOnlyCollection<LED> LEDs { get; private set; }
+        /// <summary>
+        /// Returns all LEDs on this channel
+        /// </summary>
+        public ReadOnlyCollection<LED> LEDs { get; private set; }
 
-		public int LEDCount { get => LEDs.Count; }
-		
-	}
+        public int LEDCount { get => LEDs.Count; }
+    }
 }

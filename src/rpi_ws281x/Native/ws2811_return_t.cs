@@ -1,5 +1,8 @@
-namespace Native
+using System.Diagnostics.CodeAnalysis;
+
+namespace rpi_ws281x.Native
 {
+    [SuppressMessage("IDE1006", "IDE1006", Justification = "Native methods have different naming conventions.")]
 	internal enum ws2811_return_t
 	{
 		WS2811_SUCCESS = 0,
