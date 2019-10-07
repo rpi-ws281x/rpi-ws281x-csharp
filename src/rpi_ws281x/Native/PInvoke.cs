@@ -2,7 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
-namespace WS281x.Native
+namespace rpi_ws281x.Native
 {
 	internal class PInvoke
 	{

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace WS281x
+namespace rpi_ws281x
 {
 	/// <summary>
 	/// The type of the LED strip defines the ordering of the colors (e. g. RGB, GRB, ...).
@@ -74,5 +74,7 @@ namespace WS281x
 		/// WS2811_STRIP_BGR
 		/// </summary>
 		WS2811_STRIP_BGR = 0x00000810,
-	}
+
+        WS2812_STRIP = 0x00081000
+    }
 }

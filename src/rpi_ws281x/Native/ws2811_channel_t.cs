@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WS281x.Native
+namespace rpi_ws281x.Native
 {
 	[StructLayout(LayoutKind.Sequential)]
 	[SuppressMessage("IDE1006", "IDE1006", Justification = "Native methods have different naming conventions.")]

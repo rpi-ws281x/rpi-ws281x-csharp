@@ -1,18 +1,37 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace WS281x
+namespace rpi_ws281x
 {
 	/// <summary>
 	/// Represents the channel which holds the LEDs
 	/// </summary>
 	public class Channel
 	{
-		
-		/// <summary>
-		/// Returns the GPIO pin which is connected to the LED strip
-		/// </summary>
-		public int GPIOPin { get; private set; }
+        public Channel() : this(0, 0) { }
+
+        public Channel(int ledCount, int gpioPin) : this(ledCount, gpioPin, 255, false, StripType.Unknown) { }
+
+        public Channel(int ledCount, int gpioPin, byte brightness, bool invert, StripType stripType)
+        {
+            GPIOPin = gpioPin;
+            Invert = invert;
+            Brightness = brightness;
+            StripType = stripType;
+
+            var ledList = new List<LED>();
+            for (int i = 0; i <= ledCount - 1; i++)
+            {
+                ledList.Add(new LED(i));
+            }
+
+            LEDs = new ReadOnlyCollection<LED>(ledList);
+        }
+
+        /// <summary>
+        /// Returns the GPIO pin which is connected to the LED strip
+        /// </summary>
+        public int GPIOPin { get; private set; }
 
 		/// <summary>
 		/// Returns a value which indicates if the signal needs to be inverted.
@@ -32,32 +51,11 @@ namespace WS281x
 		/// </summary>
 		public StripType StripType { get; private set; }
 
-		/// <summary>
-		/// Returns all LEDs on this channel
-		/// </summary>
-		public List<LED> Leds { get; private set; }
+        /// <summary>
+        /// Returns all LEDs on this channel
+        /// </summary>
+        public ReadOnlyCollection<LED> LEDs { get; private set; }
 
-		public int LEDCount { get => Leds.Count; }
-		
-		//public Channel() : this(0, 0) { }
-		
-		public Channel(int ledCount, int gpioPin) : this(ledCount, gpioPin, 255, false, StripType.Unknown)	{ }
-
-		public Channel(int ledCount, int gpioPin, byte brightness, bool invert, StripType stripType)
-		{
-			GPIOPin = gpioPin;
-			Invert = invert;
-			Brightness = brightness;
-			StripType = stripType;
-
-			Leds = new List<LED>();
-			for(int i= 0; i< ledCount; i++)
-			{
-				Leds.Add(new LED(i));
-			}
-
-			//LEDs = new ReadOnlyCollection<LED>(ledList);
-		}
-
-	}
+        public int LEDCount { get => LEDs.Count; }
+    }
 }

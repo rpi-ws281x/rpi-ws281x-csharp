@@ -2,9 +2,9 @@
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
-using WS281x.Native;
+using rpi_ws281x.Native;
 
-namespace WS281x
+namespace rpi_ws281x
 {
 	/// <summary>
 	/// Wrapper class to controll WS281x LEDs
@@ -27,9 +27,13 @@ namespace WS281x
 			_ws2811.dmanum	= settings.DMAChannel;
 			_ws2811.freq	= settings.Frequency;
 			_ws2811.channel_1 = default(ws2811_channel_t);
-			InitChannel(ref _ws2811.channel_1, settings.Channel);
+            _ws2811.channel_2 = default(ws2811_channel_t);
+            if (settings.Channel_1 != null)
+			    InitChannel(ref _ws2811.channel_1, settings.Channel_1);
+            if (settings.Channel_2 != null)
+                InitChannel(ref _ws2811.channel_2, settings.Channel_2);
 
-			Settings = settings;
+            Settings = settings;
 
 			var initResult = PInvoke.ws2811_init(_ws2811Handle.AddrOfPinnedObject());
 			if (initResult != ws2811_return_t.WS2811_SUCCESS)
@@ -48,10 +52,18 @@ namespace WS281x
 		/// </summary>
 		public void Render()
 		{
-			var ledColor = Settings.Channel.Leds.Select(x => x.RGBValue).ToArray();
-			Marshal.Copy(ledColor, 0, _ws2811.channel_1.leds, ledColor.Count());
+            if (Settings.Channel_1 != null) {
+                var ledColor = Settings.Channel_1.LEDs.Select(x => x.RGBValue).ToArray();
+                Marshal.Copy(ledColor, 0, _ws2811.channel_1.leds, ledColor.Count());
+            }
+            if (Settings.Channel_2 != null)
+            {
+                var ledColor = Settings.Channel_2.LEDs.Select(x => x.RGBValue).ToArray();
+                Marshal.Copy(ledColor, 0, _ws2811.channel_2.leds, ledColor.Count());
+            }
 
-			var result = PInvoke.ws2811_render(_ws2811Handle.AddrOfPinnedObject());
+
+            var result = PInvoke.ws2811_render(_ws2811Handle.AddrOfPinnedObject());
 			if (result != ws2811_return_t.WS2811_SUCCESS)
 			{
 				var returnMessage = GetMessageForStatusCode(result);
@@ -65,18 +77,13 @@ namespace WS281x
 		/// <param name="channelIndex">Channel which controls the LED</param>
 		/// <param name="ledID">ID/Index of the LED</param>
 		/// <param name="color">New color</param>
-		public void SetLEDColor(int ledID, Color color)
+		public void SetLEDColor(int channelIndex, int ledID, Color color)
 		{
-			Settings.Channel.Leds[ledID].Color = color;
-		}
-
-		public void SetColorOnAllLEDs(Color color)
-		{
-			for(int i = 0 ; i < Settings.Channel.Leds.Count ; ++i)
-			{
-				Settings.Channel.Leds[i].Color = color;
-			}
-		}
+            if (channelIndex == 0)
+		        Settings.Channel_1.LEDs[ledID].Color = color;
+            else if (channelIndex == 1)
+                Settings.Channel_2.LEDs[ledID].Color = color;
+        }
 
 		/// <summary>
 		/// Returns the settings which are used to initialize the component
@@ -97,7 +104,9 @@ namespace WS281x
 
 			if (channelSettings.StripType != StripType.Unknown)
 			{
-				channel.strip_type = (int)channelSettings.StripType;
+                //Strip type is set by the native assembly if not explicitly set.
+                //This type defines the ordering of the colors e. g. RGB or GRB, ...
+                channel.strip_type = (int)channelSettings.StripType;
 			}
 		}
 
@@ -112,7 +121,8 @@ namespace WS281x
 			return Marshal.PtrToStringAuto(strPointer);
 		}
 
-		private bool disposedValue = false; // To detect redundant calls
+#region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing)
 		{
@@ -143,7 +153,7 @@ namespace WS281x
 
 		~WS281x()
 		{
-		// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+		    // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
 			Dispose(false);
 		}
 
@@ -152,5 +162,6 @@ namespace WS281x
 			Dispose(true);
 			GC.SuppressFinalize(this);
 		}
-	}
+        #endregion
+    }
 }
